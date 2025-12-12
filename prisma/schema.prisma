@@ -1,0 +1,174 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+
+/// Represents a registered user within the system.
+/// This is a core model, as user data is required for authentication and relations.
+model User {
+  /// Unique identifier provided by Firebase auth (UID).
+  id String @id
+
+  /// The user's email that comes from the auth provider.
+  email String @unique
+
+  ///The user's full display name sourced from Google.
+  name String?
+
+  ///The user's profile picture URL.
+  avatarUrl String?
+
+  // --- Relations ---
+
+  /// List of problems reported by this user.
+  problems Problem[]
+
+  /// History of votes cast by this user.
+  votes Vote[]
+
+  /// Timestamp of when the user account was first created
+  createdAt DateTime @default(now())
+  @@map("users")
+}
+
+/// Represents a broad category of issues (e.g., "Public Spaces", "sanitation").
+/// Acts as the parent entity for specific IssueTypes.
+model Category {
+  /// Unique identifier for the category (UUID).
+  id String @id @default(uuid())
+
+  /// The Unique display name of the category used in the frontend.
+  name String @unique
+  
+  // --- relation ---
+  
+  /// List of specific issue types belonging to this category.
+  issueTypes IssueType[]
+
+  /// Timestamp of when this category was first created.
+  createdAt DateTime @default(now())
+
+  /// Timestamp of the last update made to this record.
+  updatedAt DateTime @updatedAt
+
+  @@map("categories")
+}
+
+
+/// Defines specific types of issues available for selection.
+/// Acts as the child entity for the Category.
+model IssueType {
+  /// Unique identifier for the issue type (UUID).
+  id String @id @default(uuid())
+
+  /// The display title of the issue type shown in the frontend.
+  title String
+
+  // --- relations ---
+
+  ///Foreign Key: Links to the parent category (e.g., "Public Spaces").
+  categoryId String
+
+  /// The parent category this issue type belongs to.
+  category  Category @relation(fields: [categoryId], references: [id])
+
+  /// List of actual user reports classified under this type.
+  problems Problem[]
+
+  /// Timestamp of when this issue type was first created.
+  createdAt DateTime @default(now())
+
+  @@map("issue_types")
+}
+
+/// Represents a reported issue within the city (e.g., potholes, lack of sanitation).
+/// this is the central entity of the application.
+model Problem {
+  /// Unique identifier for the problem (UUID)
+  id String @id @default(uuid())
+
+  /// A detailed description of the problem provided by the user.
+  /// Max length should be handled by the frontend/API DTOs.
+  description String
+
+  /// URL pointing to the image stored in the Cloudinary
+  /// This field is nullable because the user might not upload a photo.
+  imageUrl String?
+
+  /// Geographical latitude of the problem location.
+  latitude Float
+
+  /// Geographical longitude of the problem location.
+  longitude Float
+
+  // --- Relations ---
+
+  /// Foreign Key: Links to the specific type of issue (e.g., "Street Light").
+  issueTypeId String
+
+  /// The category/type of the problem.
+  issueType IssueType @relation(fields: [issueTypeId], references: [id])
+
+  /// Foreign Key: The ID of the user who reported the problem (from Firebase).
+  authorId String
+
+  /// The user who created this report.
+  author User @relation(fields: [authorId], references: [id])
+
+  ///List of votes received by this problem.
+  votes Vote[]
+
+  // --- Metadata & Caching ---
+
+  /// Caches the count of "Non-Existent" votes to improve read performance.
+  /// incremented automatically via application logic when a vote occurs.
+  votesNotExistsCount Int @default(0)
+
+  /// Timestamp of when the problem was first reported.
+  createdAt DateTime @default(now())
+
+  /// Timestamp of the last update made to this record.
+  updatedAt DateTime @updatedAt
+
+  @@map("problems")
+}
+
+/// Represents the votes cast by a user on a specific reported problem
+/// Acts as a junction table that manages the many-to-many relationship between Users and Problems
+model Vote {
+  /// Unique identifier for the vote (UUID).
+  id String @id @default(uuid())
+
+  // --- relations ---
+
+  ///Foreign Key: The ID of the user who cast the vote.
+  userId String
+
+  /// The user who submitted this vote.
+  user User @relation(fields: [userId], references: [id])
+
+  ///Foreign Key: The ID of the problem being voted on.
+  problemId String
+  
+  /// The specific problem associated with this vote.
+  problem Problem @relation(fields: [problemId], references: [id])
+
+  ///The nature of the vote (e.g., confirming the issue or marking it as non-existent).
+  type VoteType
+
+  /// Timestamp of when the vote was voted.
+  createdAt DateTime @default(now())
+
+  // Ensures a user can only vote once per problem.
+  @@unique([userId, problemId])
+  @@map("votes")
+}
+
+enum VoteType {
+  CONFIRMATION
+  NON_EXISTENT
+}
