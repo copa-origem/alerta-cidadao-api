@@ -5,12 +5,12 @@ import { PrismaClient } from '@prisma/client';
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
     
     // connect the database when the module start
-    async OnModuleInit() {
+    async onModuleInit() {
         await this.$connect();
     }
 
     // disconnect when the application close
-    async OnModuleDestroy() {
+    async onModuleDestroy() {
         await this.$disconnect();
     }
 }
