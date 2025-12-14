@@ -12,7 +12,7 @@ export class AuthGuard implements CanActivate {
     //Prisma injection to save the user
     constructor(private prisma: PrismaService) {}
 
-    async canActivate(context: ExecutionContext): Promise<booblean>{
+    async canActivate(context: ExecutionContext): Promise<boolean>{
         const request = context.switchToHttp().getRequest();
 
         // first we get the token from the header
@@ -26,6 +26,10 @@ export class AuthGuard implements CanActivate {
         try {
             // second we validate the token on firebase
             const decodedToken = await admin.auth().verifyIdToken(token);
+
+            if (!decodedToken.email) {
+                throw new UnauthorizedException("invalid token: email not found")
+            }
 
             //third we sinc creating the use if not exists
             //if exists we get the data actualized
