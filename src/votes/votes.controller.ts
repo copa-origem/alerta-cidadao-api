@@ -24,11 +24,6 @@ export class VotesController {
     return this.votesService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateVoteDto: UpdateVoteDto) {
-    return this.votesService.update(+id, updateVoteDto);
-  }
-
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.votesService.remove(+id);

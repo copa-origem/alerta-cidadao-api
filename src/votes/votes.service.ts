@@ -56,10 +56,6 @@ export class VotesService {
     return `This action returns a #${id} vote`;
   }
 
-  update(id: number, updateVoteDto: UpdateVoteDto) {
-    return `This action updates a #${id} vote`;
-  }
-
   remove(id: number) {
     return `This action removes a #${id} vote`;
   }
