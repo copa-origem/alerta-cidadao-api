@@ -1,6 +1,7 @@
 import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { CreateProblemDto } from './dto/create-problem.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class ProblemsService {
@@ -55,6 +56,21 @@ export class ProblemsService {
 
     return await this.prisma.problem.delete({
       where: { id },
+    });
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async handleCronDeleteOldProblems() {
+
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const result = await this.prisma.problem.deleteMany({
+      where: {
+        createdAt: {
+          lt: thirtyDaysAgo
+        },
+      },
     });
   }
 }
