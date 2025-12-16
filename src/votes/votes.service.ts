@@ -34,7 +34,7 @@ export class VotesService {
       });
 
       if (type === VoteType.NON_EXISTENT) {
-        await tx.problem.update({
+        const updatedProblem = await tx.problem.update({
           where: { id: problemId },
           data: {
             votesNotExistsCount: {
@@ -42,6 +42,14 @@ export class VotesService {
             },
           },
         });
+
+        if (updatedProblem.votesNotExistsCount >= 3) {
+          await tx.problem.delete({
+            where: { id: problemId },
+          });
+
+          return { message: "Problem deleted by excess of down votes"}
+        }
       }
 
       return newVote;

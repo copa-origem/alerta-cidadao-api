@@ -28,6 +28,6 @@ export class ProblemsController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.problemsService.remove(+id);
+    return this.problemsService.remove(id);
   }
 }

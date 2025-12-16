@@ -40,7 +40,11 @@ export class ProblemsService {
     return `This action returns a #${id} problem`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} problem`;
+  async remove(id: string) {
+    return await this.prisma.problem.delete ({
+      where: {
+        id: id,
+      },
+    });
   }
 }
