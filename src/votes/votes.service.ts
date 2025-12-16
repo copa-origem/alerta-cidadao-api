@@ -56,15 +56,4 @@ export class VotesService {
     });
   }
 
-  findAll() {
-    return `This action returns all votes`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} vote`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} vote`;
-  }
 }
