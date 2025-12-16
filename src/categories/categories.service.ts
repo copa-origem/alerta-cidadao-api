@@ -13,4 +13,15 @@ export class CategoriesService {
       },
     });
   }
+
+  async findByName(name: string) {
+    return await this.prisma.category.findMany ({
+      where: {
+        name: name,
+      },
+      include: {
+        issueTypes: true,
+      },
+    });
+  }
 }

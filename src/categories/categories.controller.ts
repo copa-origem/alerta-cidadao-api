@@ -13,4 +13,11 @@ export class CategoriesController {
   findAll() {
     return this.categoriesService.findAll();
   }
+
+  @Get(':name')
+  @ApiOperation({summary: 'List a category by name'})
+  @ApiResponse({ status: 200, description: 'List returns with success.'})
+  findByName(@Param('name') name: string) {
+    return this.categoriesService.findByName(name);
+  }
 }
