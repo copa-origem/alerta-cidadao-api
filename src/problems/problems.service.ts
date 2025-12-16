@@ -37,8 +37,12 @@ export class ProblemsService {
     });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} problem`;
+  async findUserProblems(id: string) {
+    return await this.prisma.problem.findMany ({
+      where: {
+        authorId: id
+      }
+    });
   }
 
   async remove(id: string, userId: string) {
