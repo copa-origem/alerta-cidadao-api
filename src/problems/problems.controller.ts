@@ -22,8 +22,12 @@ export class ProblemsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.problemsService.findOne(+id);
+  @UseGuards(AuthGuard)
+  findUserProblems(@Req() req) {
+
+    const userId = req.user.id;
+
+    return this.problemsService.findUserProblems(userId);
   }
 
   @Delete(':id')
