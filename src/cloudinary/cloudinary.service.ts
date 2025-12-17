@@ -20,7 +20,8 @@ export class CloudinaryService {
 
             return result.secure_url;
         } catch (error) {
-            throw new Error(`Error to upload image: ${error.message}`);
+            console.log("complete error: ", error);
+            throw new Error(`Error to upload image: ${JSON.stringify(error)}`);
         }
     }
 }
