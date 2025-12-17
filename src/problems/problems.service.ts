@@ -12,7 +12,7 @@ export class ProblemsService {
   ) {}
 
   async create(userId: string, createProblemDto: CreateProblemDto) {
-    let finalImageUrl = null;
+    let finalImageUrl = "";
 
     if (createProblemDto.imageUrl) {
       finalImageUrl = await this.cloudinary.uploadBase64(createProblemDto.imageUrl);
