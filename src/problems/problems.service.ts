@@ -2,18 +2,28 @@ import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/commo
 import { CreateProblemDto } from './dto/create-problem.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Injectable()
 export class ProblemsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private cloudinary: CloudinaryService
+  ) {}
 
   async create(userId: string, createProblemDto: CreateProblemDto) {
+    let finalImageUrl = null;
+
+    if (createProblemDto.imageUrl) {
+      finalImageUrl = await this.cloudinary.uploadBase64(createProblemDto.imageUrl);
+    }
+
     return await this.prisma.problem.create({
       data: {
         description: createProblemDto.description,
         latitude: createProblemDto.latitude,
         longitude: createProblemDto.longitude,
-        imageUrl: createProblemDto.imageUrl,
+        imageUrl: finalImageUrl,
 
         issueType: {
           connect: { id: createProblemDto.issueTypeId }
