@@ -11,7 +11,7 @@ export class CloudinaryService {
         });
     }
 
-    async uploadBase64(base64String: string) : Promisse<string> {
+    async uploadBase64(base64String: string) : Promise<string> {
         try {
             const result = await cloudinary.uploader.upload(base64String, {
                 folder: 'alerta-cidadao',
