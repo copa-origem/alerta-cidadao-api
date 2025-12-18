@@ -35,16 +35,33 @@ export class ProblemsService {
     });
   }
 
-  async findAll() {
-    return await this.prisma.problem.findMany ({
-      include: {
-        issueType: true,
-        author: true
-      },
-      orderBy: {
-        createdAt: 'desc'
+  async findAll(page: number, limit: number) {
+    const skip = (page - 1) * limit;
+
+    const [items, total] = await Promise.all([
+      this.prisma.problem.findMany({
+        skip: skip,
+        take: limit,
+        include: {
+          issueType: true,
+          author: {
+            select: { id: true, name: true }
+          }
+        },
+        orderBy: { createdAt: 'desc'}
+      }),
+
+      this.prisma.problem.count()
+    ]);
+    return {
+      data: items,
+      meta: {
+        total,
+        page,
+        lastPage: Math.ceil(total/limit),
+        limit
       }
-    });
+    };
   }
 
   async findUserProblems(id: string) {
