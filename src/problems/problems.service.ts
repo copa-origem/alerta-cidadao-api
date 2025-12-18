@@ -44,9 +44,6 @@ export class ProblemsService {
         take: limit,
         include: {
           issueType: true,
-          author: {
-            select: { id: true, name: true }
-          }
         },
         orderBy: { createdAt: 'desc'}
       }),
@@ -62,6 +59,28 @@ export class ProblemsService {
         limit
       }
     };
+  }
+
+  async findAllForMap() {
+    return await this.prisma.problem.findMany({
+      select: {
+        id: true,
+        latitude: true,
+        longitude: true,
+        imageUrl: true,
+        description: true,
+        votesNotExistsCount: true,
+        issueType: {
+          select: {
+            id: true,
+            title: true
+          }
+        }
+      },
+      where: {
+        status: 'OPEN'
+      }
+    });
   }
 
   async findUserProblems(id: string) {

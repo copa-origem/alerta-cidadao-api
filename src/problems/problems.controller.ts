@@ -23,6 +23,13 @@ export class ProblemsController {
     return this.problemsService.create(userId, createProblemDto);
   }
 
+  @Get('map')
+  @ApiOperation({ summary: 'return the coords from all problems (light)'})
+  @ApiResponse({ status: 200, description: 'List returns with success.'})
+  findAllForMap() {
+    return this.problemsService.findAllForMap();
+  }
+
   @Get()
   @ApiOperation({ summary: 'List all problems registed'})
   @ApiResponse({ status: 200, description: 'List returns with success.'})
