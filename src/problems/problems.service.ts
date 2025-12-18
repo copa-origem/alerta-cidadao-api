@@ -90,4 +90,14 @@ export class ProblemsService {
       },
     });
   }
+
+  async update(id: string) {
+    return await this.prisma.problem.patch({
+      where: {id},
+      data: {
+        status: {
+          increment: "SOLVED",
+      },
+    }
+  })
 }
