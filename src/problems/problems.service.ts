@@ -91,9 +91,9 @@ export class ProblemsService {
     });
   }
 
-  async update(id: string) {
+  async update(id: string, userId: string) {
     return await this.prisma.problem.patch({
-      where: {id},
+      where: {problemId: id, authorId: userId},
       data: {
         status: "SOLVED"
       }
