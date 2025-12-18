@@ -41,6 +41,18 @@ export class ProblemsController {
 
     return this.problemsService.findUserProblems(userId);
   }
+  @Patch(':id/solve')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'update the problem status'})
+  @ApiResponse({ status: 200, description: 'status update with success.'})
+  @ApiResponse({ status: 401, description: 'Unauthorized request'})
+  @ApiResponse({ status: 403, description: 'Invalid token or not forneced'})
+  updateStatus(@Param('id') id: string, @Req() req) {
+
+    const userId = req.user.id;
+
+    return this.problemsService.update(id, userId);
+  }
 
   @Delete(':id')
   @UseGuards(AuthGuard)

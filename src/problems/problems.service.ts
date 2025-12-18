@@ -92,11 +92,20 @@ export class ProblemsService {
   }
 
   async update(id: string, userId: string) {
-    return await this.prisma.problem.patch({
-      where: {problemId: id, authorId: userId},
+    const updateProblem = await this.prisma.problem.findUnique({
+      where: {id: id, authorId: userId}
+    });
+
+    if (!updateProblem) {
+      throw new NotFoundException("problem not found.");
+    }
+
+    return await this.prisma.problem.update({
+      where: {id: id, authorId: userId},
       data: {
         status: "SOLVED"
       }
-    });
+    })
+
   }
 }
