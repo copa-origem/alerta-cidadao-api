@@ -64,6 +64,23 @@ export class ProblemsService {
     };
   }
 
+  async findAllForMap() {
+    return await this.prisma.problems.findMany({
+      select: {
+        id: true,
+        latitude: true,
+        longitude: true,
+        issueType: {
+          id: true,
+          title: true
+        }
+      },
+      where: {
+        status: 'OPEN'
+      }
+    });
+  }
+
   async findUserProblems(id: string) {
     return await this.prisma.problem.findMany ({
       where: {
