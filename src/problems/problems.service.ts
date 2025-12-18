@@ -65,14 +65,19 @@ export class ProblemsService {
   }
 
   async findAllForMap() {
-    return await this.prisma.problems.findMany({
+    return await this.prisma.problem.findMany({
       select: {
         id: true,
         latitude: true,
         longitude: true,
+        imageUrl: true,
+        description: true,
+        votesNotExistsCount: true,
         issueType: {
-          id: true,
-          title: true
+          select: {
+            id: true,
+            title: true
+          }
         }
       },
       where: {
