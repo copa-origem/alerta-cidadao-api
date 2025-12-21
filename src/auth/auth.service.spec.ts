@@ -69,4 +69,19 @@ describe('AuthGuard', () => {
       new UnauthorizedException('invalid token or expired'),
     );
   });
+
+  it('should throw UnauthorizedException if decoded token has no email', async () => {
+    const context = createMockContext('Bearer valid-token');
+
+    (admin.auth().verifyIdToken as jest.Mock).mockResolvedValue({
+      uid: 'user-123',
+      name: 'Test User',
+    });
+
+    await expect(guard.canActivate(context)).rejects.toThrow(
+      new UnauthorizedException('invalid token: email not found'),
+    );
+  });
+
+  
 });
