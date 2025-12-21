@@ -83,5 +83,38 @@ describe('AuthGuard', () => {
     );
   });
 
-  
+  it('should upsert user and return true if token is valid', async () => {
+    const context = createMockContext('Bearer valid-token');
+    const request = context.switchToHttp().getRequest();
+
+    const decodedToken = {
+      uid: 'firebase-uid',
+      email: 'test@example.com',
+      name: 'Test User',
+    };
+
+    const dbUser = {
+      id: 'firebase-uid',
+      email: 'test@example.com',
+      name: 'Test User',
+    };
+
+    (admin.auth().verifyIdToken as jest.Mock).mockResolvedValue(decodedToken);
+
+    prismaMock.user.upsert.mockResolvedValue(dbUser as any);
+
+    const result = await guard.canActivate(context);
+
+    expect(result).toBe(true);
+    expect(prismaMock.user.upsert).toHaveBeenCalledWith({
+      where: { id: decodedToken.uid },
+      update: { name: decodedToken.name },
+      create: {
+        id: decodedToken.uid,
+        email: decodedToken.email,
+        name: decodedToken.name,
+      },
+    });
+    expect(request['user']).toEqual(dbUser);
+  });
 });
