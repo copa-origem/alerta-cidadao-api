@@ -59,4 +59,14 @@ describe('AuthGuard', () => {
       new UnauthorizedException('Token not given'),
     );
   });
+
+  it('should throw UnauthorizedException if firebase token verification fails', async () => {
+    const context = createMockContext('Bearer invalid-token');
+
+    (admin.auth().verifyIdToken as jest.Mock).mockResolvedValue(new Error('Firebase error'));
+
+    await expect(guard.canActivate(context)).rejects.toThrow(
+      new UnauthorizedException('invalid token or expired'),
+    );
+  });
 });
