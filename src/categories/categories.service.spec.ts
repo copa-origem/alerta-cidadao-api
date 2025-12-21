@@ -46,4 +46,25 @@ describe('CategoriesService', () => {
       include: { issueTypes: true },
     });
   });
+
+  it('must return categories filtered by name', async () => {
+    const categoryName = 'Holes';
+    const fakeCategories = [
+      { id: '1', name: 'Holes', createdAt: new Date(), updatedAt: new Date() },
+    ];
+
+    prismaMock.category.findMany.mockResolvedValue(fakeCategories as any);
+
+    const result = await service.findByName(categoryName);
+
+    expect(result).toEqual(fakeCategories);
+    expect(prismaMock.category.findMany).toHaveBeenCalledWith({
+      where: {
+        name: categoryName,
+      },
+      include: {
+        issueTypes: true,
+      },
+    });
+  });
 });
