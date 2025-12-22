@@ -77,5 +77,14 @@ decribe('ProblemsController', () => {
         });
     });
 
-    
-})
+    describe('remove', () => {
+        it('should call service.remove with problem id and user id', async () => {
+            const req = { user: { id: 'user-999' } };
+            const problemId = 'prob-delete';
+
+            await controller.remove(problemId, req);
+
+            expect(serviceMock.remove).toHaveBeenCalledWith(problemId, 'user-999');
+        });
+    });
+});
