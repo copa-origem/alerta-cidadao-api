@@ -58,5 +58,13 @@ decribe('ProblemsController', () => {
         });
     });
 
+    describe('findUserProblems', () => {
+        it('should call service.findUserProblems with user id from request', async () => {
+            const req = { user: { id: 'user-456' } };
+            await controller.findUserProblems(req);
+            expect(serviceMock.findUserProblems).toHaveBeenCalledWith('user-456');
+        });
+    });
+
     
 })
