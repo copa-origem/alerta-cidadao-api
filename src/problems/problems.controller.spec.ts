@@ -5,14 +5,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { mockDeep, DeepMockProxy } from 'jest-mock-extended';
 import { CreateProblemDto } from './dto/create-problem.dto';
 
-decribe('ProblemsController', () => {
+describe('ProblemsController', () => {
     let controller: ProblemsController;
     let serviceMock: DeepMockProxy<ProblemsService>;
 
-    beforEach(async () => {
+    beforeEach(async () => {
         serviceMock = mockDeep<ProblemsService>();
 
-        const module: TestingModule = await Test.CreateTestingModule({
+        const module: TestingModule = await Test.createTestingModule({
             controllers: [ProblemsController],
             providers: [
                 { provide: ProblemsService, useValue: serviceMock },
@@ -24,7 +24,7 @@ decribe('ProblemsController', () => {
     });
 
     it('should be defined', () => {
-        expect(controller.toBeDefined());
+        expect(controller).toBeDefined();
     });
 
     describe('create', () => {
