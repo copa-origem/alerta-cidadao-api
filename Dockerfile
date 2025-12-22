@@ -26,10 +26,17 @@ FROM node:20-alpine AS production
 WORKDIR /usr/src/app
 
 #Copy only the necessary files from the previous step
-COPY --from=build /usr/src/app/node_modules ./node_modules
 COPY --from=build /usr/src/app/package*.json ./
-COPY --from=build /usr/src/app/dist ./dist
 COPY --from=build /usr/src/app/prisma ./prisma
+
+#run with the flag
+RUN npm ci --only=production
+
+#new prisma client
+RUN npx prisma generate
+
+#light dist
+COPY --from=build /usr/src/app/dist ./dist
 
 #define the envirement variables
 ENV NODE_ENV production
@@ -38,4 +45,4 @@ ENV NODE_ENV production
 EXPOSE 3000
 
 #cmd to start the aplication in production
-CMD [ "npm", "run", "start:migrate:prod" ]
+CMD [ "node", "dist/main.js" ]
