@@ -50,5 +50,13 @@ decribe('ProblemsController', () => {
             expect(serviceMock.findAllForMap).toHaveBeenCalled();
         });
     });
+
+    describe('findAll', () => {
+        it('should call service.findAll with default or provided values', async () => {
+            await controller.findAll(2, 20);
+            expect(serviceMock.findAll).toHaveBeenCalledWith(2, 20);
+        });
+    });
+
     
 })
