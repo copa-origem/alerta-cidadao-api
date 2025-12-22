@@ -28,7 +28,7 @@ describe('CategoriesService', () => {
     expect(service).toBeDefined();
   });
 
-  if('must return a list of categories', async () => {
+  it('must return a list of categories', async () => {
     const fakeCategories = [
       { id: '1', name: 'Holes', createdAt: new Date(), updatedAt: new Date() },
       { id: '2', name: 'light', createdAt: new Date(), updatedAt: new Date() },
@@ -44,6 +44,27 @@ describe('CategoriesService', () => {
 
     expect(prismaMock.category.findMany).toHaveBeenCalledWith({
       include: { issueTypes: true },
+    });
+  });
+
+  it('must return categories filtered by name', async () => {
+    const categoryName = 'Holes';
+    const fakeCategories = [
+      { id: '1', name: 'Holes', createdAt: new Date(), updatedAt: new Date() },
+    ];
+
+    prismaMock.category.findMany.mockResolvedValue(fakeCategories as any);
+
+    const result = await service.findByName(categoryName);
+
+    expect(result).toEqual(fakeCategories);
+    expect(prismaMock.category.findMany).toHaveBeenCalledWith({
+      where: {
+        name: categoryName,
+      },
+      include: {
+        issueTypes: true,
+      },
     });
   });
 });
