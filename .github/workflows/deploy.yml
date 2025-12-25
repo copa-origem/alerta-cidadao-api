@@ -42,6 +42,8 @@ jobs:
         username: azureuser
         key: ${{ secrets.SSH_KEY }}
         port: 22
+        sync: true
+        debug: true
         script: |
           cd /home/azureuser || exit
 
