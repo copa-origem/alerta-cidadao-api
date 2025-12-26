@@ -1,5 +1,6 @@
 # 🚀 NestJS API Migration (Express to NestJS)
 
+![CI/CD](https://github.com/copa-origem/api-consumo-nest/actions/workflows/deploy.yml/badge.svg)
 ![NestJS](https://img.shields.io/badge/nestjs-%23E0234E.svg?style=for-the-badge&logo=nestjs&logoColor=white)
 ![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Prisma](https://img.shields.io/badge/Prisma-3982CE?style=for-the-badge&logo=Prisma&logoColor=white)
@@ -10,11 +11,43 @@
 
 This project represents a significant architectural evolution. Originally built with **Express.js and Firebase (NoSQL)**, this backend has been completely rewritten and migrated to **NestJS and PostgreSQL**.
 
-The goal of this migration was to adopt a more structured, scalable, and maintainable architecture, leveraging:
-- **Dependency Injection** provided by NestJS.
-- **Relational Data Integrity** with PostgreSQL.
-- **Type Safety** with TypeScript and DTOs.
-- **Automated Testing** (Unit & E2E).
+The goal was not just to write better code, but to build a **Production-Ready Architecture**, leveraging:
+- **Dependency Injection** & **Modular Design**.
+- **Relational Integrity** with PostgreSQL.
+- **Automated CI/CD Pipelines** for reliable deployments.
+- **Cloud Infrastructure** management.
+
+## 🏗️ Architecture & Infrastructure
+
+The system is deployed on **Microsoft Azure** using a containerized strategy optimized for low-resource environments.
+
+```mermaid
+graph LR
+    User((User)) --> Vercel[Next.js Frontend]
+    Vercel -- Proxy /api --> Azure[Azure VM (Linux)]
+    
+    subgraph Azure Cloud
+        direction TB
+        Azure --> Docker[Docker Engine]
+        
+        subgraph Docker Containers
+            API[NestJS API]
+            DB[(PostgreSQL)]
+        end
+        
+        Docker --> API
+        Docker --> DB
+        API -- Network Bridge --> DB
+    end
+    
+    GitHub[GitHub Repo] -- Actions --> DockerHub[Docker Hub Registry]
+    DockerHub -- Pull Image --> Azure
+```
+
+## ☁️ DevOps Highlights
+- **CI/CD Pipeline:** Uses GitHub Actions to automate testing, building, and deployment.  
+- **Docker Optimization:** Uses Multi-Stage Builds (Alphine Linux) to reduce image size and RAM usage, allowing the application to run efficiently on small VM instances.  
+- **Security:** Strict firewall rules (Azure NSG) and SSH key-based authentication.  
 
 ## ✨ Features
 
@@ -31,11 +64,11 @@ The goal of this migration was to adopt a more structured, scalable, and maintai
 ## 🛠️ Tech Stack
 
 - **Framework:** [NestJS](https://nestjs.com/)
-- **Language:** TypeScript
+- **Cloud:** Microsoft Azure (Virtual Machines)
 - **Database:** PostgreSQL
+- **CI/CD:** GitHub Actions  
 - **ORM:** Prisma
 - **Containerization:** Docker & Docker Compose
-- **Testing:** Jest & Supertest
 - **Docs:** Swagger UI
 
 ## 🚀 Getting Started
