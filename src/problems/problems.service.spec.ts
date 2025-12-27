@@ -19,6 +19,12 @@ describe('ProblemsService', () => {
                 ProblemsService,
                 { provide: PrismaService, useValue: prismaMock},
                 { provide: CloudinaryService, useValue: cloudinaryMock},
+                {
+                    provide: 'NOTIFICATIONS_SERVICE',
+                    useValue: {
+                        emit: jest.fn(),
+                    },
+                },
             ],
         }).compile();
 
