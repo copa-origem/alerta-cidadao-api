@@ -1,12 +1,14 @@
-import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { CreateProblemDto } from './dto/create-problem.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { ClientProxy } from "@nestjs/microservices";
 
 @Injectable()
 export class ProblemsService {
   constructor(
+    @Inject('NOTIFICATIONS_SERVICE') private client: ClientProxy,
     private prisma: PrismaService,
     private cloudinary: CloudinaryService
   ) {}
