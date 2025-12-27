@@ -10,7 +10,7 @@ import { ProblemsController } from './problems.controller';
         name: 'NOTIFICATIONS_SERVICE',
         transport: Transport.RMQ,
         options: {
-          urls: ['amqp://user:password@localhost:5672'],
+          urls: [process.env.RABBITMQ_URL || 'amqp://user:password@127.0.0.1:5672'],
           queue: 'problems_queue',
           queueOptions: {
             durable: false,
