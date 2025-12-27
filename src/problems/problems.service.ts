@@ -20,7 +20,7 @@ export class ProblemsService {
       finalImageUrl = await this.cloudinary.uploadBase64(createProblemDto.imageUrl);
     }
 
-    return await this.prisma.problem.create({
+    const newProblem = await this.prisma.problem.create({
       data: {
         description: createProblemDto.description,
         latitude: createProblemDto.latitude,
@@ -35,6 +35,14 @@ export class ProblemsService {
         }
       },
     });
+
+    this.client.emit('problem_created', {
+      id: newProblem.id,
+      description: newProblem.description,
+      email: 'admin@prefeitura.com'
+    });
+
+    return newProblem;
   }
 
   async findAll(page: number, limit: number) {
