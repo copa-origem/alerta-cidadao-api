@@ -13,12 +13,9 @@ export class ProblemsController {
 
   @EventPattern('problem_created')
   async handleProblemCreated(@Payload() data: any) {
-    console.log('Mensagem recebida via rabbit');
-    console.log('dados: ', data);
 
     await new Promise(r => setTimeout(r, 2000));
 
-    console.log('processamento em segundo plano finalizado');
   }
 
   @Post()
