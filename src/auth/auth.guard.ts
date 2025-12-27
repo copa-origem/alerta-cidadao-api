@@ -22,7 +22,7 @@ export class AuthGuard implements CanActivate {
 
         try {
             const decodedToken = await admin.auth().verifyIdToken(token);
-
+            
             if (!decodedToken.email) {
                 throw new UnauthorizedException("invalid token: email not found")
             }

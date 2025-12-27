@@ -1,12 +1,14 @@
-import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { CreateProblemDto } from './dto/create-problem.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { ClientProxy } from "@nestjs/microservices";
 
 @Injectable()
 export class ProblemsService {
   constructor(
+    @Inject('NOTIFICATIONS_SERVICE') private client: ClientProxy,
     private prisma: PrismaService,
     private cloudinary: CloudinaryService
   ) {}
@@ -18,7 +20,7 @@ export class ProblemsService {
       finalImageUrl = await this.cloudinary.uploadBase64(createProblemDto.imageUrl);
     }
 
-    return await this.prisma.problem.create({
+    const newProblem = await this.prisma.problem.create({
       data: {
         description: createProblemDto.description,
         latitude: createProblemDto.latitude,
@@ -33,6 +35,14 @@ export class ProblemsService {
         }
       },
     });
+
+    this.client.emit('problem_created', {
+      id: newProblem.id,
+      description: newProblem.description,
+      email: 'admin@prefeitura.com'
+    });
+
+    return newProblem;
   }
 
   async findAll(page: number, limit: number) {
