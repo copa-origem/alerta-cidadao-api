@@ -3,12 +3,23 @@ import { ProblemsService } from './problems.service';
 import { CreateProblemDto } from './dto/create-problem.dto';
 import { AuthGuard } from '../auth/auth.guard';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { EventPattern, Payload } from '@nestjs/microservices';
 
 @ApiTags('Problems')
 @ApiBearerAuth()
 @Controller('problems')
 export class ProblemsController {
   constructor(private readonly problemsService: ProblemsService) {}
+
+  @EventPattern('problem_created')
+  async handleProblemCreated(@Payload() data: any) {
+    console.log('Mensagem recebida via rabbit');
+    console.log('dados: ', data);
+
+    await new Promise(r => setTimeout(r, 2000));
+
+    console.log('processamento em segundo plano finalizado');
+  }
 
   @Post()
   @UseGuards(AuthGuard)
