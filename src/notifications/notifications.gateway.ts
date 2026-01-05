@@ -51,4 +51,25 @@ export class NotificationsGateway implements OnGatewayConnection, OnGateWayDisco
             client.disconnect();
         }
     }
+
+    notifyUser(UserId: string, event: string, payload: any) {
+        this.logger.log(`Sended Event '${event}' to user_${userId}`);
+        this.server.to(`user_${userId}`).emit(event, payload);
+    }
+
+    private extractToken(client: Socket): string | undefined {
+        const authHeader = client.handshake.headers.authorization;
+        if (authHeader) {
+            const [type, token] = authHeader.split(' ');
+            if (type === 'Bearer') return token;
+        }
+
+        const queryToken = client.handshake.query.token;
+        if (typeof queryToken === 'string') return queryToken;
+
+        const authObjToken = client.handshake.auth?.token;
+        if(authObjToken) return authObjToken;
+
+        return undefined;
+    }
 }
