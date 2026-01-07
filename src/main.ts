@@ -19,6 +19,16 @@ async function bootstrap() {
     },
   });
 
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.RMQ,
+    options: {
+      urls: [process.env.RABBITMQ_URL || 'amqp://user:password@127.0.0.1:5672'],
+      queue: 'reports_queue',
+      queueOptions: { durable: true },
+      noAck: false,
+    },
+  });
+
   app.useGlobalPipes(new ValidationPipe());
 
   admin.initializeApp({
