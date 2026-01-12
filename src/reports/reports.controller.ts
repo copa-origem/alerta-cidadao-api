@@ -12,10 +12,6 @@ import { ReportsService } from './reports.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { EventPattern, Payload, MessagePattern, Ctx, RmqContext } from '@nestjs/microservices';
 import { NotificationsGateway } from '../notifications/notifications.gateway';
-import * as pdfMake from 'pdfmake/build/pdfmake';
-import * as pdfFonts from 'pdfmake/build/vfs_fonts';
-
-const REPORTS_SERVICE = 'REPORTS_SERVICE';
 
 @Controller('reports')
 export class ReportsController {
