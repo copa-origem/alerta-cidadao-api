@@ -1,6 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import * as PdfPrinter from 'pdfmake';
+const PdfPrinter = require('pdfmake/src/printer');
 import { TDocumentDefinitions } from 'pdfmake/interfaces';
 import * as fs from 'fs';
 
@@ -78,7 +78,7 @@ export class ReportsService {
         };
 
         return new Promise((resolve, reject) => {
-            const pdfDoc = printer.createPDFKitDocument(docDefinition);
+            const pdfDoc = printer.createPdfKitDocument(docDefinition);
             const chunks: any[] = [];
 
             pdfDoc.on('data', (chunk) => chunks.push(chunk));
