@@ -1,15 +1,19 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards, Query, DefaultValuePipe, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards, Query, DefaultValuePipe, ParseIntPipe, Inject } from '@nestjs/common';
 import { ProblemsService } from './problems.service';
 import { CreateProblemDto } from './dto/create-problem.dto';
 import { AuthGuard } from '../auth/auth.guard';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { EventPattern, Payload } from '@nestjs/microservices';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
 @ApiTags('Problems')
 @ApiBearerAuth()
 @Controller('problems')
 export class ProblemsController {
-  constructor(private readonly problemsService: ProblemsService) {}
+  constructor(
+    private readonly problemsService: ProblemsService,
+    @Inject(CACHE_MANAGER) private cacheManager: any,
+  ) {}
 
   @EventPattern('problem_created')
   async handleProblemCreated(@Payload() data: any) {
@@ -24,11 +28,11 @@ export class ProblemsController {
   @ApiResponse({ status: 201, description: 'problem create with success.'})
   @ApiResponse({ status: 401, description: 'Unauthorized request'})
   @ApiResponse({ status: 403, description: 'Invalid token or not forneced'})
-  create(@Body() createProblemDto: CreateProblemDto, @Req() req) {
-
+  async create(@Body() createProblemDto: CreateProblemDto, @Req() req) {
     const userId = req.user.id;
-
-    return this.problemsService.create(userId, createProblemDto);
+    const result = await this.problemsService.create(userId, createProblemDto);
+    await this.cacheManager.clear();
+    return result;
   }
 
   @Get('map')
@@ -65,11 +69,11 @@ export class ProblemsController {
   @ApiResponse({ status: 200, description: 'status update with success.'})
   @ApiResponse({ status: 401, description: 'Unauthorized request'})
   @ApiResponse({ status: 403, description: 'Invalid token or not forneced'})
-  updateStatus(@Param('id') id: string, @Req() req) {
-
+  async updateStatus(@Param('id') id: string, @Req() req) {
     const userId = req.user.id;
-
-    return this.problemsService.update(id, userId);
+    const result = await this.problemsService.update(id, userId);
+    await this.cacheManager.clear();
+    return result;
   }
 
   @Delete(':id')
@@ -77,7 +81,9 @@ export class ProblemsController {
   @ApiOperation({ summary: 'Delete the problem by id'})
   @ApiResponse({ status: 200, description: 'Deleted the problem by id'})
   @ApiResponse({ status: 403, description: 'Invalid token or not forneced'})
-  remove(@Param('id') id: string, @Req() req) {
-    return this.problemsService.remove(id, req.user.id);
+  async remove(@Param('id') id: string, @Req() req) {
+    const result = await this.problemsService.remove(id, req.user.id);
+    await this.cacheManager.clear();
+    return result;
   }
 }
