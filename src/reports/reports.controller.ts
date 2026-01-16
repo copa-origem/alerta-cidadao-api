@@ -12,6 +12,7 @@ import { ReportsService } from './reports.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { EventPattern, Payload, MessagePattern, Ctx, RmqContext } from '@nestjs/microservices';
 import { NotificationsGateway } from '../notifications/notifications.gateway';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('reports')
 export class ReportsController {
@@ -24,6 +25,7 @@ export class ReportsController {
     @Post('export')
     @UseGuards(AuthGuard)
     @HttpCode(HttpStatus.ACCEPTED)
+    @Throttle({ default: { limit: 2, ttl: 60000 } })
     async exportReport(@Req() req, @Body() body: any) {
         const userId = req.user.id;
         const filters = body.filters;
