@@ -4,10 +4,18 @@ import { ProblemsService } from './problems.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { mockDeep, DeepMockProxy } from 'jest-mock-extended';
 import { CreateProblemDto } from './dto/create-problem.dto';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
 describe('ProblemsController', () => {
     let controller: ProblemsController;
     let serviceMock: DeepMockProxy<ProblemsService>;
+
+    const mockCacheManager = {
+        clear: jest.fn(),
+        store: {
+            reset: jest.fn(),
+        },
+    };
 
     beforeEach(async () => {
         serviceMock = mockDeep<ProblemsService>();
@@ -17,6 +25,7 @@ describe('ProblemsController', () => {
             providers: [
                 { provide: ProblemsService, useValue: serviceMock },
                 { provide: PrismaService, useValue: mockDeep<PrismaService>() },
+                { provide: CACHE_MANAGER, useValue: mockCacheManager },
             ],
         }).compile();
 
