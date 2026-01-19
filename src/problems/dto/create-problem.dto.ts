@@ -19,15 +19,11 @@ export class CreateProblemDto {
 
     @ApiProperty({
         description: 'UUID from the type of the problem.',
-        example: 'f9bf4533-c28a-4a0a-8c09-5a01fb55a526.',
+        example: 'cc6b4a21-9a9f-43eb-aa93-c90d82e79677',
     })
     @IsUUID()
     issueTypeId: string;
 
-    @ApiPropertyOptional({
-        description: 'URL from image of the problem.',
-        example: 'https://my-image.com/image.jpg',
-    })
     @IsOptional()
     @IsString()
     imageUrl?: string;
