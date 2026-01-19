@@ -7,7 +7,6 @@ import { EventPattern, Payload } from '@nestjs/microservices';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
 @ApiTags('Problems')
-@ApiBearerAuth()
 @Controller('problems')
 export class ProblemsController {
   constructor(
@@ -24,6 +23,7 @@ export class ProblemsController {
 
   @Post()
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new urban problem'})
   @ApiResponse({ status: 201, description: 'problem create with success.'})
   @ApiResponse({ status: 401, description: 'Unauthorized request'})
@@ -54,6 +54,7 @@ export class ProblemsController {
 
   @Get('my-problems')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'List only the problems created by user'})
   @ApiResponse({ status: 200, description: 'List returns with success.'})
   @ApiResponse({ status: 403, description: 'Invalid token or not forneced'})
@@ -65,6 +66,7 @@ export class ProblemsController {
   }
   @Patch(':id/solve')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'update the problem status'})
   @ApiResponse({ status: 200, description: 'status update with success.'})
   @ApiResponse({ status: 401, description: 'Unauthorized request'})
@@ -78,6 +80,7 @@ export class ProblemsController {
 
   @Delete(':id')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete the problem by id'})
   @ApiResponse({ status: 200, description: 'Deleted the problem by id'})
   @ApiResponse({ status: 403, description: 'Invalid token or not forneced'})
