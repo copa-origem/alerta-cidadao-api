@@ -23,30 +23,75 @@ The system is deployed on **Microsoft Azure** using a containerized strategy opt
 
 ```mermaid
 graph LR
-    User((User)) --> Vercel["Next.js Frontend"]
-    Vercel -- "Proxy /api" --> Azure["Azure VM (Linux)"]
+    User((Usuário))
     
-    subgraph AzureCloud ["Azure Cloud"]
+    subgraph Frontend_App ["Frontend (Vercel)"]
+        Next["Next.js Client"]
+    end
+
+    subgraph Internet ["Internet / DNS"]
+        Domain["api.alertacidadaoapi.com"]
+    end
+
+    subgraph Azure_Infra ["Azure Cloud (Canadá)"]
         direction TB
-        Azure --> Docker["Docker Engine"]
         
-        subgraph Containers ["Docker Containers"]
-            API["NestJS API (Hybrid)"]
-            DB[("PostgreSQL")]
-            Rabbit[["RabbitMQ (Broker)"]]
+        subgraph VM ["Azure VM (Linux)"]
+            Nginx["Nginx (Reverse Proxy + SSL)"]
+            
+            subgraph Containers ["Docker Compose Cluster"]
+                API["NestJS API"]
+                DB[("PostgreSQL")]
+                Rabbit[("RabbitMQ")]
+                Redis[("Redis")]
+            end
         end
-        
-        Docker --> API
-        Docker --> DB
-        Docker --> Rabbit
-        
-        API -- "Read/Write" --> DB
-        API -- "Publish Event" --> Rabbit
-        Rabbit -. "Consume Event" .-> API
     end
     
-    GitHub["GitHub Repo"] -- Actions --> DockerHub["Docker Hub Registry"]
-    DockerHub -- "Pull Images" --> Azure
+    %% CI/CD Flow
+    GitHub["GitHub Repo"] -. "Actions CI/CD" .-> VM
+
+    %% User Flow
+    User -->|Acessa| Next
+    
+    %% Requests Flow
+    Next -- "HTTPS" --> Domain
+    User -- "WSS (WebSocket)" --> Domain
+    
+    %% Ingress Flow
+    Domain -- "Port 443" --> Nginx
+    
+    %% Internal Docker Networking
+    Nginx -- "Proxy Pass :3000" --> API
+    
+    API <-->|"Prisma"| DB
+    API <-->|"Events"| Rabbit
+    API <-->|"Cache/WS"| Redis
+
+    %% ESTILIZAÇÃO (High Contrast)
+    %% Cores fortes com texto branco para leitura fácil
+    
+    %% Azul para o Core (API, Banco, Fila)
+    classDef container fill:#2962ff,stroke:#0039cb,stroke-width:2px,color:#ffffff;
+    
+    %% Verde para Entrada/Segurança (Nginx)
+    classDef gateway fill:#00c853,stroke:#009624,stroke-width:2px,color:#ffffff;
+    
+    %% Amarelo para o DNS (Destaque visual de conexão)
+    classDef dns fill:#ffd600,stroke:#fbc02d,stroke-width:2px,color:#000000;
+    
+    %% Cinza Escuro para Externos (User, Git, Vercel)
+    classDef external fill:#263238,stroke:#000000,stroke-width:2px,color:#ffffff;
+    
+    %% Fundo da Cloud mais neutro
+    classDef cloud fill:#f5f5f5,stroke:#90a4ae,stroke-width:2px,stroke-dasharray: 5 5,color:#37474f;
+    
+    %% Aplicando as classes
+    class API,DB,Rabbit,Redis container;
+    class Nginx gateway;
+    class Domain dns;
+    class GitHub,Next,User external;
+    class Azure_Infra,VM cloud;
 ```
 
 ## ☁️ DevOps Highlights
