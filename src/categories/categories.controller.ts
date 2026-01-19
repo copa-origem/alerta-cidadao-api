@@ -21,7 +21,7 @@ export class CategoriesController {
   @ApiResponse({ status: 200, description: 'List returns with success.'})
   @ApiParam({
     name: 'name',
-    example: 'Infraestrutura Urbana',
+    enum: ['Espaços Públicos', 'Infraestrutura Urbana', 'Mobilidade e Transporte', 'Saneamento e Meio Ambiente', 'Segurança e Cidadania'],
     description: 'Nome da categoria (ex: Espaços Públicos, Mobilidade e Transporte, etc.)'
   })
   findByName(@Param('name') name: string) {
