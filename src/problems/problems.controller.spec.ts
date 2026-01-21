@@ -5,10 +5,16 @@ import { PrismaService } from '../prisma/prisma.service';
 import { mockDeep, DeepMockProxy } from 'jest-mock-extended';
 import { CreateProblemDto } from './dto/create-problem.dto';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { NotificationsGateway } from '../notifications/notifications.gateway'
+
+const mockNotificationsGateway = {
+    notifyAll: jest.fn(),
+};
 
 describe('ProblemsController', () => {
     let controller: ProblemsController;
     let serviceMock: DeepMockProxy<ProblemsService>;
+    let gateway: NotificationsGateway;
 
     const mockCacheManager = {
         clear: jest.fn(),
@@ -26,6 +32,7 @@ describe('ProblemsController', () => {
                 { provide: ProblemsService, useValue: serviceMock },
                 { provide: PrismaService, useValue: mockDeep<PrismaService>() },
                 { provide: CACHE_MANAGER, useValue: mockCacheManager },
+                { provide: NotificationsGateway, useValue: mockNotificationsGateway },
             ],
         }).compile();
 
@@ -36,20 +43,51 @@ describe('ProblemsController', () => {
         expect(controller).toBeDefined();
     });
 
-    describe('create', () => {
+    describe('shoul create a problem and emit a websocket event', () => {
         it('should call service.create with correct data', async () => {
             const dto: CreateProblemDto = {
                 description: 'Test problem',
                 latitude: 1.23,
                 longitude: 4.56,
                 issueTypeId: 'type-1',
+                issueType: { title: 'hole'},
                 imageUrl: 'base64str',
             };
             const req = { user: { id: 'user-123' } };
 
+            const createdProblemMock = {
+                id: 'uuid-123',
+                description: 'Test problem',
+                latitude: 1.23,
+                longitude: 4.56,
+                imageUrl: 'base64str',
+                issueTypeId: 'type-1',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                userId: 'user-123',
+                issueType: { title: 'hole', id: 'type-1', categoryId: 'cat-1' },
+                author: { id: 'user-123', name: 'User Test' },
+                votesNotExistsCount: 0               
+            }
+
+            serviceMock.create.mockResolvedValue(createdProblemMock as any);
+
             await controller.create(dto, req);
 
             expect(serviceMock.create).toHaveBeenCalledWith('user-123', dto);
+
+            expect(mockNotificationsGateway.notifyAll).toHaveBeenCalledWith(
+                'map-update',
+                expect.objectContaining({
+                    id: 'uuid-123',
+                    description: 'Test problem',
+                    latitude: 1.23,
+                    longitude: 4.56,
+                    issueType: { id: 'type-1', title: 'hole' },
+                    imageUrl: 'base64str',
+                    votesNotExistsCount: 0
+                })
+            )
         });
     });
 

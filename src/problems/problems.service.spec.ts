@@ -50,7 +50,12 @@ describe('ProblemsService', () => {
                 authorId: userId,
                 createdAt: new Date(),
                 updatedAt: new Date(),
-                votesNotExistsCount: 0
+                votesNotExistsCount: 0,
+                issueType: {
+                    id: 1,
+                    title: 'Buraco',
+                    categoryId: 2
+                }
             } as any);
 
             await service.create(userId, dto);
