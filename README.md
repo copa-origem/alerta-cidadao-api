@@ -1,25 +1,36 @@
-# 🚀 NestJS API Migration (Express to NestJS)
+# 🚀 Alerta Cidadão API (Core Service)
 
 ![CI/CD](https://github.com/copa-origem/api-consumo-nest/actions/workflows/deploy.yml/badge.svg)
 ![NestJS](https://img.shields.io/badge/nestjs-%23E0234E.svg?style=for-the-badge&logo=nestjs&logoColor=white)
+![RabbitMQ](https://img.shields.io/badge/Rabbitmq-FF6600?style=for-the-badge&logo=rabbitmq&logoColor=white)
 ![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white)
-![Prisma](https://img.shields.io/badge/Prisma-3982CE?style=for-the-badge&logo=Prisma&logoColor=white)
 ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
 ![Jest](https://img.shields.io/badge/-jest-%23C21325?style=for-the-badge&logo=jest&logoColor=white)
 
-## 📖 About the Project
+> The backend powerhouse behind the Alerta Cidadão platform, designed for high availability and event-driven processing.
 
-This project represents a significant architectural evolution. Originally built with **Express.js and Firebase (NoSQL)**, this backend has been completely rewritten and migrated to **NestJS and PostgreSQL**.
+---
 
-The goal was not just to write better code, but to build a **Production-Ready Architecture**, leveraging:
-- **Dependency Injection** & **Modular Design**.
-- **Relational Integrity** with PostgreSQL.
-- **Automated CI/CD Pipelines** for reliable deployments.
-- **Cloud Infrastructure** management.
+## 🔗 Live Documentation & Access
+
+🟢 **Live Swagger UI:** [https://api.alertacidadaoapi.com/api](https://api.alertacidadaoapi.com/api)  
+*(Try the endpoints directly in your browser!)*
+
+---
+
+## 📖 Context: The Evolution
+
+This project represents a significant architectural evolution. Originally built with **Express.js (MVP)**, this system has been completely re-engineered using **NestJS**.
+
+The goal was to transition from a monolithic script to a **Enterprise-Grade Architecture**, leveraging:
+- **Event-Driven Design** with RabbitMQ (to handle heavy background tasks).
+- **Real-Time Communication** via WebSockets.
+- **Relational Integrity** with PostgreSQL & Prisma.
+- **Automated CI/CD Pipelines** for reliable deployments on Azure.
 
 ## 🏗️ Architecture & Infrastructure
 
-The system is deployed on **Microsoft Azure** using a containerized strategy optimized for low-resource environments.
+The system is deployed on **Microsoft Azure** using a containerized strategy optimized for performance and cost-efficiency.
 
 ```mermaid
 graph LR
@@ -94,32 +105,31 @@ graph LR
     class Azure_Infra,VM cloud;
 ```
 
-## ☁️ DevOps Highlights
-- **CI/CD Pipeline:** Uses GitHub Actions to automate testing, building, and deployment.  
-- **Docker Optimization:** Uses Multi-Stage Builds (Alphine Linux) to reduce image size and RAM usage, allowing the application to run efficiently on small VM instances.  
-- **Security:** Strict firewall rules (Azure NSG) and SSH key-based authentication.  
-
-## ✨ Features
-
-- **Architecture:** Modular structure using NestJS (Controllers, Services, Modules).
-- **Database:** PostgreSQL containerized with Docker.
-- **ORM:** Prisma ORM for schema modeling and migrations.
-- **Validation:** Global Pipes and DTOs using `class-validator` to ensure data integrity.
-- **Documentation:** Auto-generated API documentation with Swagger (OpenAPI).
+## ✨ Key Engineering Features
+- **Event-Driven Architecture:** Uses **RabbitMQ** to decouple PDF generation from the main API. The API returns 202 Accepted immediately, and the heavy processing happens in the background.  
+- **Real-Time Feedback:** MOnce the background job is done, the server pushes the result to the client via **WebSockets**.  
+- **Modular Design:** Strictly follows NestJS modular architecture (Controllers, Services, Guards, DTOs).  
+- **Security:**  
+  - **JWT Authentication** (Middleware integrated with Firebase Auth).  
+  - **Data Validation** using class-validator and DTOs.  
+  - **Rate Limiting** (Throttler) to prevent abuse.
 - **Testing:**
-  - Unit Tests (Jest) for Services.
-  - E2E Tests (Supertest) for API Endpoints.
-- **Seeding:** Scripts to populate the database with initial data.
+  - Unit Tests (**Jest**) for business logic.
+  - E2E Tests (**Supertest**) for critial endpoints.
+
+## ☁️ DevOps Strategy
+- **CI/CD:** GitHub Actions pipeline runs tests, builds the Docker image, and deploys to Azure via SSH.  
+- **Docker:** Multi-stage builds (Alpine Linux) to minimize image size and RAM usage.    
+- **Nginx:** Configured as a Reverse Proxy with SSL termination (Let's Encrypt) to secure traffic.  
 
 ## 🛠️ Tech Stack
 
 - **Framework:** [NestJS](https://nestjs.com/)
+- **Message Broker:** RabbitMQ
+- **Database:** PostgreSQL + Prisma ORM
+- **Cache/WS Adapter:** Redis 
 - **Cloud:** Microsoft Azure (Virtual Machines)
-- **Database:** PostgreSQL
-- **CI/CD:** GitHub Actions  
-- **ORM:** Prisma
 - **Containerization:** Docker & Docker Compose
-- **Docs:** Swagger UI
 
 ## 🚀 Getting Started
 
