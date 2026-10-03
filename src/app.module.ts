@@ -24,13 +24,10 @@ import * as Joi from 'joi';
       isGlobal: true,
       validationSchema: Joi.object({
         DATABASE_URL: Joi.string().required(),
-        //firebase
         FIREBASE_PROJECT_ID: Joi.string(),
-        //cloudinary
         CLOUDINARY_NAME: Joi.string().required(),
         CLOUDINARY_API_KEY: Joi.string().required(),
         CLOUDINARY_API_SECRET: Joi.string().required(),
-        //port
         PORT: Joi.number().default(3000),
       }),
     }),

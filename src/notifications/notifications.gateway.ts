@@ -10,7 +10,7 @@ import * as admin from 'firebase-admin';
 @Injectable()
 @WebSocketGateway({
     cors: {
-        origin: '*', // TODO: restrict to the frontend origin
+        origin: '*',
     },
 })
 export class NotificationsGateway implements OnGatewayConnection {
