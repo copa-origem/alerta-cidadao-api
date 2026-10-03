@@ -5,12 +5,13 @@ import {
     UseGuards,
     HttpCode,
     HttpStatus,
+    Logger,
 } from '@nestjs/common';
 import { ReportsService } from './reports.service';
 import type { ReportJob } from './reports.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
-import { EventPattern, Payload } from '@nestjs/microservices';
+import { Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
 import { NotificationsGateway } from '../notifications/notifications.gateway';
 import { Throttle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
@@ -20,6 +21,8 @@ import type { User } from '@prisma/client';
 @ApiTags('Reports')
 @Controller('reports')
 export class ReportsController {
+    private readonly logger = new Logger(ReportsController.name);
+
     constructor(
         private readonly reportsService: ReportsService,
         private readonly notificationsGateway: NotificationsGateway,
@@ -38,6 +41,7 @@ export class ReportsController {
         1. Client receives HTTP 202 (Accepted).
         2. Client should listen to the WebSocket event **"report_ready"**.
         3. Once the Worker finishes processing, the PDF URL will be pushed via WebSocket.
+        4. If the generation fails, the event **"report_failed"** is sent instead.
         `
     })
     @ApiResponse({ 
@@ -58,15 +62,30 @@ export class ReportsController {
     }
 
     @EventPattern('generate-report')
-    async handleGenerateReport(@Payload() data: ReportJob) {
+    async handleGenerateReport(@Payload() data: ReportJob, @Ctx() context: RmqContext) {
+        const channel = context.getChannelRef();
+        const message = context.getMessage();
         const { userId, filters, jobId } = data;
 
-        const pdfUrl = await this.reportsService.generatePdf(jobId, filters);
+        try {
+            const pdfUrl = await this.reportsService.generatePdf(jobId, filters);
 
-        this.notificationsGateway.notifyUser(userId, 'report_ready', {
-            message: 'Seu relatório está pronto!',
-            downloadUrl: pdfUrl,
-            jobId: jobId
-        });
+            this.notificationsGateway.notifyUser(userId, 'report_ready', {
+                message: 'Seu relatório está pronto!',
+                downloadUrl: pdfUrl,
+                jobId: jobId
+            });
+
+            channel.ack(message);
+        } catch (error) {
+            this.logger.error(`Job ${jobId}: report generation failed`, error instanceof Error ? error.stack : error);
+
+            this.notificationsGateway.notifyUser(userId, 'report_failed', {
+                message: 'Não foi possível gerar o relatório. Tente novamente.',
+                jobId: jobId
+            });
+
+            channel.nack(message, false, false);
+        }
     }
 }
