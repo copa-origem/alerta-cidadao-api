@@ -5,7 +5,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { mockDeep, DeepMockProxy } from 'jest-mock-extended';
 import { CreateProblemDto } from './dto/create-problem.dto';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { NotificationsGateway } from '../notifications/notifications.gateway'
+import { NotificationsGateway } from '../notifications/notifications.gateway';
+import { User } from '@prisma/client';
 
 const mockNotificationsGateway = {
     notifyAll: jest.fn(),
@@ -43,17 +44,16 @@ describe('ProblemsController', () => {
         expect(controller).toBeDefined();
     });
 
-    describe('shoul create a problem and emit a websocket event', () => {
+    describe('should create a problem and emit a websocket event', () => {
         it('should call service.create with correct data', async () => {
             const dto: CreateProblemDto = {
                 description: 'Test problem',
                 latitude: 1.23,
                 longitude: 4.56,
                 issueTypeId: 'type-1',
-                issueType: { title: 'hole'},
                 imageUrl: 'base64str',
             };
-            const req = { user: { id: 'user-123' } };
+            const user = { id: 'user-123' } as User;
 
             const createdProblemMock = {
                 id: 'uuid-123',
@@ -72,7 +72,7 @@ describe('ProblemsController', () => {
 
             serviceMock.create.mockResolvedValue(createdProblemMock as any);
 
-            await controller.create(dto, req);
+            await controller.create(dto, user);
 
             expect(serviceMock.create).toHaveBeenCalledWith('user-123', dto);
 
@@ -106,30 +106,30 @@ describe('ProblemsController', () => {
     });
 
     describe('findUserProblems', () => {
-        it('should call service.findUserProblems with user id from request', async () => {
-            const req = { user: { id: 'user-456' } };
-            await controller.findUserProblems(req);
+        it('should call service.findUserProblems with the current user id', async () => {
+            const user = { id: 'user-456' } as User;
+            await controller.findUserProblems(user);
             expect(serviceMock.findUserProblems).toHaveBeenCalledWith('user-456');
         });
     });
 
-    describe('updateStatus', () => {
-        it('should call service.update with problem id and user id', async () => {
-            const req = { user: { id: 'user-789' } };
+    describe('markAsSolved', () => {
+        it('should call service.markAsSolved with problem id and user id', async () => {
+            const user = { id: 'user-789' } as User;
             const problemId = 'prob-1';
 
-            await controller.updateStatus(problemId, req);
+            await controller.markAsSolved(problemId, user);
 
-            expect(serviceMock.update).toHaveBeenCalledWith(problemId, 'user-789');
+            expect(serviceMock.markAsSolved).toHaveBeenCalledWith(problemId, 'user-789');
         });
     });
 
     describe('remove', () => {
         it('should call service.remove with problem id and user id', async () => {
-            const req = { user: { id: 'user-999' } };
+            const user = { id: 'user-999' } as User;
             const problemId = 'prob-delete';
 
-            await controller.remove(problemId, req);
+            await controller.remove(problemId, user);
 
             expect(serviceMock.remove).toHaveBeenCalledWith(problemId, 'user-999');
         });

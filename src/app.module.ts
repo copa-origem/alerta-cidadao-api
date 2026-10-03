@@ -1,9 +1,6 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { CategoriesModule } from './categories/categories.module';
-import { AuthModule } from './auth/auth.module';
 import { ProblemsModule } from './problems/problems.module';
 import { VotesModule } from './votes/votes.module';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -48,7 +45,15 @@ import * as Joi from 'joi';
           ttl: 60 * 1000,
         }),
       }),
-    }), PrismaModule, CategoriesModule, AuthModule, ProblemsModule, ScheduleModule.forRoot(), VotesModule, CloudinaryModule, NotificationsModule, ReportsModule
+    }),
+    ScheduleModule.forRoot(),
+    PrismaModule,
+    CloudinaryModule,
+    NotificationsModule,
+    CategoriesModule,
+    ProblemsModule,
+    VotesModule,
+    ReportsModule,
   ],
   providers: [
     {

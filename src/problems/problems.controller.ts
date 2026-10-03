@@ -1,12 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards, Query, DefaultValuePipe, ParseIntPipe, Inject } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, DefaultValuePipe, ParseIntPipe, Inject } from '@nestjs/common';
 import { ProblemsService } from './problems.service';
 import { CreateProblemDto } from './dto/create-problem.dto';
 import { AuthGuard } from '../auth/auth.guard';
+import { CurrentUser } from '../auth/current-user.decorator';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
-import { EventPattern, Payload } from '@nestjs/microservices';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
+import type { User } from '@prisma/client';
 import { NotificationsGateway } from '../notifications/notifications.gateway';
-
 
 @ApiTags('Problems')
 @Controller('problems')
@@ -14,26 +15,18 @@ export class ProblemsController {
   constructor(
     private readonly problemsService: ProblemsService,
     private readonly notificationsGateway: NotificationsGateway,
-    @Inject(CACHE_MANAGER) private cacheManager: any,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
-
-  @EventPattern('problem_created')
-  async handleProblemCreated(@Payload() data: any) {
-
-    await new Promise(r => setTimeout(r, 2000));
-
-  }
 
   @Post()
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new urban problem'})
-  @ApiResponse({ status: 201, description: 'problem create with success.'})
+  @ApiResponse({ status: 201, description: 'Problem created successfully.'})
   @ApiResponse({ status: 401, description: 'Unauthorized request'})
-  @ApiResponse({ status: 403, description: 'Invalid token or not forneced'})
-  async create(@Body() createProblemDto: CreateProblemDto, @Req() req) {
-    const userId = req.user.id;
-    const result = await this.problemsService.create(userId, createProblemDto);
+  @ApiResponse({ status: 403, description: 'Invalid or missing token'})
+  async create(@Body() createProblemDto: CreateProblemDto, @CurrentUser() user: User) {
+    const result = await this.problemsService.create(user.id, createProblemDto);
     await this.cacheManager.clear();
 
     const mapPayload = {
@@ -54,15 +47,15 @@ export class ProblemsController {
   }
 
   @Get('map')
-  @ApiOperation({ summary: 'return the coords from all problems (light)'})
-  @ApiResponse({ status: 200, description: 'List returns with success.'})
+  @ApiOperation({ summary: 'Return the coordinates of all open problems (lightweight)'})
+  @ApiResponse({ status: 200, description: 'List returned successfully.'})
   findAllForMap() {
     return this.problemsService.findAllForMap();
   }
 
   @Get()
-  @ApiOperation({ summary: 'List all problems registed'})
-  @ApiResponse({ status: 200, description: 'List returns with success.'})
+  @ApiOperation({ summary: 'List all registered problems'})
+  @ApiResponse({ status: 200, description: 'List returned successfully.'})
   findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
@@ -73,25 +66,22 @@ export class ProblemsController {
   @Get('my-problems')
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'List only the problems created by user'})
-  @ApiResponse({ status: 200, description: 'List returns with success.'})
-  @ApiResponse({ status: 403, description: 'Invalid token or not forneced'})
-  findUserProblems(@Req() req) {
-
-    const userId = req.user.id;
-
-    return this.problemsService.findUserProblems(userId);
+  @ApiOperation({ summary: 'List only the problems created by the user'})
+  @ApiResponse({ status: 200, description: 'List returned successfully.'})
+  @ApiResponse({ status: 403, description: 'Invalid or missing token'})
+  findUserProblems(@CurrentUser() user: User) {
+    return this.problemsService.findUserProblems(user.id);
   }
+
   @Patch(':id/solve')
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'update the problem status'})
-  @ApiResponse({ status: 200, description: 'status update with success.'})
+  @ApiOperation({ summary: 'Mark the problem as solved'})
+  @ApiResponse({ status: 200, description: 'Status updated successfully.'})
   @ApiResponse({ status: 401, description: 'Unauthorized request'})
-  @ApiResponse({ status: 403, description: 'Invalid token or not forneced'})
-  async updateStatus(@Param('id') id: string, @Req() req) {
-    const userId = req.user.id;
-    const result = await this.problemsService.update(id, userId);
+  @ApiResponse({ status: 403, description: 'Invalid or missing token'})
+  async markAsSolved(@Param('id') id: string, @CurrentUser() user: User) {
+    const result = await this.problemsService.markAsSolved(id, user.id);
     await this.cacheManager.clear();
     return result;
   }
@@ -101,9 +91,9 @@ export class ProblemsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete the problem by id'})
   @ApiResponse({ status: 200, description: 'Deleted the problem by id'})
-  @ApiResponse({ status: 403, description: 'Invalid token or not forneced'})
-  async remove(@Param('id') id: string, @Req() req) {
-    const result = await this.problemsService.remove(id, req.user.id);
+  @ApiResponse({ status: 403, description: 'Invalid or missing token'})
+  async remove(@Param('id') id: string, @CurrentUser() user: User) {
+    const result = await this.problemsService.remove(id, user.id);
     await this.cacheManager.clear();
     return result;
   }

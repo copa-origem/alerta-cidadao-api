@@ -1,16 +1,14 @@
-import { Inject, Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { CreateProblemDto } from './dto/create-problem.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
-import { ClientProxy } from "@nestjs/microservices";
 
 @Injectable()
 export class ProblemsService {
   constructor(
-    @Inject('NOTIFICATIONS_SERVICE') private client: ClientProxy,
     private prisma: PrismaService,
-    private cloudinary: CloudinaryService
+    private cloudinary: CloudinaryService,
   ) {}
 
   async create(userId: string, createProblemDto: CreateProblemDto) {
@@ -37,12 +35,6 @@ export class ProblemsService {
       include: {
         issueType: true,
       }
-    });
-
-    this.client.emit('problem_created', {
-      id: newProblem.id,
-      description: newProblem.description,
-      email: 'admin@prefeitura.com'
     });
 
     return newProblem;
@@ -117,7 +109,7 @@ export class ProblemsService {
     }
 
     if (problem.authorId !== userId) {
-      throw new ForbiddenException('You dont have permition to delete this problem.')
+      throw new ForbiddenException('You do not have permission to delete this problem.')
     }
 
     return await this.prisma.problem.delete({
@@ -131,7 +123,7 @@ export class ProblemsService {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const result = await this.prisma.problem.deleteMany({
+    await this.prisma.problem.deleteMany({
       where: {
         createdAt: {
           lt: thirtyDaysAgo
@@ -140,12 +132,12 @@ export class ProblemsService {
     });
   }
 
-  async update(id: string, userId: string) {
-    const updateProblem = await this.prisma.problem.findUnique({
+  async markAsSolved(id: string, userId: string) {
+    const problem = await this.prisma.problem.findUnique({
       where: {id: id, authorId: userId}
     });
 
-    if (!updateProblem) {
+    if (!problem) {
       throw new NotFoundException("problem not found.");
     }
 

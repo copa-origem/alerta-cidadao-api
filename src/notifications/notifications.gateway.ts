@@ -1,6 +1,5 @@
 import {
     OnGatewayConnection,
-    OnGatewayDisconnect,
     WebSocketGateway,
     WebSocketServer,
 } from '@nestjs/websockets';
@@ -11,22 +10,20 @@ import * as admin from 'firebase-admin';
 @Injectable()
 @WebSocketGateway({
     cors: {
-        origin: '*', //lembrar de mudar quando for pra produção
+        origin: '*', // TODO: restrict to the frontend origin
     },
 })
-export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class NotificationsGateway implements OnGatewayConnection {
     @WebSocketServer()
     server: Server;
 
-    private logger = new Logger('NotificationsGateway');
-
-    constructor() {}
+    private logger = new Logger(NotificationsGateway.name);
 
     async handleConnection(client: Socket) {
         const token = this.extractToken(client);
 
         if (!token) {
-            this.logger.warn(`Cliente ${client.id} desconected: without token.`);
+            this.logger.warn(`Client ${client.id} disconnected: missing token.`);
             client.disconnect();
             return;
         }
@@ -47,23 +44,18 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
 
             this.logger.log(`Socket Connected: ${userId} on room ${userRoom}`);
         } catch (e) {
-            this.logger.error(`Error auth on socket: ${e.message}`);
+            this.logger.error(`Socket authentication failed: ${e.message}`);
             client.disconnect();
         }
     }
 
-    notifyUser(userId: string, event: string, payload: any) {
-
+    notifyUser(userId: string, event: string, payload: unknown) {
         this.server.to(`user_${userId}`).emit(event, payload);
-        this.logger.log(`Sended Event '${event}' to user_${userId}`);
+        this.logger.log(`Sent event '${event}' to user_${userId}`);
     }
 
-    notifyAll(event: string, payload: any) {
+    notifyAll(event: string, payload: unknown) {
         this.server.emit(event, payload);
-    }
-
-    handleDisconnect(client: Socket) {
-        
     }
 
     private extractToken(client: Socket): string | undefined {

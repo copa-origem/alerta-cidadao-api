@@ -19,12 +19,6 @@ describe('ProblemsService', () => {
                 ProblemsService,
                 { provide: PrismaService, useValue: prismaMock},
                 { provide: CloudinaryService, useValue: cloudinaryMock},
-                {
-                    provide: 'NOTIFICATIONS_SERVICE',
-                    useValue: {
-                        emit: jest.fn(),
-                    },
-                },
             ],
         }).compile();
 
@@ -73,7 +67,7 @@ describe('ProblemsService', () => {
                 latitude: 10,
                 longitude: 20,
                 issueTypeId: 'type-1',
-                imageUrl: null,                
+                imageUrl: undefined,
             };
 
             prismaMock.problem.create.mockResolvedValue({ id: 'prob-1' } as any);
@@ -141,17 +135,17 @@ describe('ProblemsService', () => {
         });
     });
 
-    describe('update', () => {
+    describe('markAsSolved', () => {
         it('should throw NotFound if problem is not found or user is not author', async () => {
             prismaMock.problem.findUnique.mockResolvedValue(null);
-            await expect(service.update('id', 'user')).rejects.toThrow(NotFoundException);
+            await expect(service.markAsSolved('id', 'user')).rejects.toThrow(NotFoundException);
         });
 
         it('should update status to SOLVED', async () => {
             prismaMock.problem.findUnique.mockResolvedValue({ id: '1' } as any);
             prismaMock.problem.update.mockResolvedValue({ id: '1', status: 'SOLVED' } as any);
 
-            await service.update('1', 'user-1');
+            await service.markAsSolved('1', 'user-1');
             expect(prismaMock.problem.update).toHaveBeenCalledWith(expect.objectContaining({
                 data: { status: 'SOLVED' }
             }));

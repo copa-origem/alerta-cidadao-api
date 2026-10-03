@@ -4,8 +4,8 @@ import { VoteType } from '@prisma/client';
 
 export class CreateVoteDto {
     @ApiProperty({
-        description: 'UUID from the problem on database.',
-        example: 'f931f4533-c284320a-8c09-5a013242fb55a526.',
+        description: 'UUID of the problem in the database.',
+        example: 'f931f453-c284-420a-8c09-5a013242fb55',
     })
     @IsUUID()
     problemId: string;

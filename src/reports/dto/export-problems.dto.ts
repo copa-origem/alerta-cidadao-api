@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsOptional, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
-class ReportFiltersDto {
+export class ReportFiltersDto {
     @ApiProperty({ example: 'OPEN', description: "Problem status to report", required: false})
     @IsOptional()
     @IsString()
@@ -13,12 +13,12 @@ class ReportFiltersDto {
     @IsString()
     categoryId?: string;
 
-    @ApiProperty({ example: '2025-12-01', description: "start date to report", required: false})
+    @ApiProperty({ example: '2025-12-01', description: "Start date of the report", required: false})
     @IsOptional()
     @IsString()
     startDate?: string;
 
-    @ApiProperty({ example: '2026-01-01', description: "end date to report", required: false})
+    @ApiProperty({ example: '2026-01-01', description: "End date of the report", required: false})
     @IsOptional()
     @IsString()
     endDate?: string;
