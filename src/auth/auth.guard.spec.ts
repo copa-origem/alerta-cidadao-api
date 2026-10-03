@@ -11,8 +11,6 @@ jest.mock('firebase-admin', () => ({
   }),
 }));
 
-
-
 describe('AuthGuard', () => {
   let guard: AuthGuard;
   let prismaMock: DeepMockProxy<PrismaService>;
@@ -65,7 +63,7 @@ describe('AuthGuard', () => {
   it('should throw UnauthorizedException if firebase token verification fails', async () => {
     const context = createMockContext('Bearer invalid-token');
 
-    (admin.auth().verifyIdToken as jest.Mock).mockResolvedValue(new Error('Firebase error'));
+    (admin.auth().verifyIdToken as jest.Mock).mockRejectedValue(new Error('Firebase error'));
 
     await expect(guard.canActivate(context)).rejects.toThrow(
       new UnauthorizedException('invalid token or expired'),

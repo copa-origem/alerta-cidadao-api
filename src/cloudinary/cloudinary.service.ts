@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { v2 as cloudinary } from 'cloudinary';
 
 @Injectable()
 export class CloudinaryService {
+    private readonly logger = new Logger(CloudinaryService.name);
+
     constructor() {
         cloudinary.config({
             cloud_name: process.env.CLOUDINARY_NAME,
@@ -20,8 +22,8 @@ export class CloudinaryService {
 
             return result.secure_url;
         } catch (error) {
-            console.log("complete error: ", error);
-            throw new Error(`Error to upload image: ${JSON.stringify(error)}`);
+            this.logger.error('Image upload failed', error);
+            throw new Error(`Failed to upload image: ${JSON.stringify(error)}`);
         }
     }
 }

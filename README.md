@@ -1,6 +1,5 @@
 # 🚀 Alerta Cidadão API (Core Service)
 
-![CI/CD](https://github.com/copa-origem/api-consumo-nest/actions/workflows/deploy.yml/badge.svg)
 ![NestJS](https://img.shields.io/badge/nestjs-%23E0234E.svg?style=for-the-badge&logo=nestjs&logoColor=white)
 ![RabbitMQ](https://img.shields.io/badge/Rabbitmq-FF6600?style=for-the-badge&logo=rabbitmq&logoColor=white)
 ![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white)

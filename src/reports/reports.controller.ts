@@ -1,28 +1,28 @@
-import { 
-    Controller, 
-    Post, 
-    Body, 
-    Req, 
-    UseGuards, 
-    HttpCode, 
+import {
+    Controller,
+    Post,
+    Body,
+    UseGuards,
+    HttpCode,
     HttpStatus,
-    Inject, 
 } from '@nestjs/common';
 import { ReportsService } from './reports.service';
+import type { ReportJob } from './reports.service';
 import { AuthGuard } from '../auth/auth.guard';
-import { EventPattern, Payload, MessagePattern, Ctx, RmqContext } from '@nestjs/microservices';
+import { CurrentUser } from '../auth/current-user.decorator';
+import { EventPattern, Payload } from '@nestjs/microservices';
 import { NotificationsGateway } from '../notifications/notifications.gateway';
 import { Throttle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
-import { ExportReportDto } from './dto/export-problems.dto'
+import { ExportReportDto } from './dto/export-problems.dto';
+import type { User } from '@prisma/client';
 
-
+@ApiTags('Reports')
 @Controller('reports')
 export class ReportsController {
     constructor(
         private readonly reportsService: ReportsService,
         private readonly notificationsGateway: NotificationsGateway,
-        @Inject('RABBITMQ_SERVICE') private readonly rabbitmqClient: any,
     ) {}
 
     @Post('export')
@@ -36,7 +36,7 @@ export class ReportsController {
         
         **How to get the result:**
         1. Client receives HTTP 202 (Accepted).
-        2. Client should listen to the WebSocket event **"report-ready"**.
+        2. Client should listen to the WebSocket event **"report_ready"**.
         3. Once the Worker finishes processing, the PDF URL will be pushed via WebSocket.
         `
     })
@@ -46,29 +46,23 @@ export class ReportsController {
         schema: {
             example: {
                 message: 'Processing...',
-                jobId: '14d610001-ff34-48ea-86a1-c1dd684005d',
+                jobId: '14d61000-ff34-48ea-86a1-c1dd684005d0',
                 status: 'pending'
             }
         }
     })
     @HttpCode(HttpStatus.ACCEPTED)
     @Throttle({ default: { limit: 2, ttl: 60000 } })
-    async exportReport(@Req() req, @Body() body: ExportReportDto) {
-        const userId = req.user.id;
-        const filters = body.filters;
-
-        return this.reportsService.requestReport(userId, filters);
+    async exportReport(@CurrentUser() user: User, @Body() body: ExportReportDto) {
+        return this.reportsService.requestReport(user.id, body.filters);
     }
 
     @EventPattern('generate-report')
-    async handleGenerateReport(@Payload() data: any, @Ctx() context: RmqContext) {
-        console.log('Worker recebeu job:', data.jobId);
-
+    async handleGenerateReport(@Payload() data: ReportJob) {
         const { userId, filters, jobId } = data;
 
-        const pdfUrl = await this.reportsService.generatePdf(filters);
+        const pdfUrl = await this.reportsService.generatePdf(jobId, filters);
 
-        console.log(`Warning the user ${userId}  by WebSocket...`);
         this.notificationsGateway.notifyUser(userId, 'report_ready', {
             message: 'Seu relatório está pronto!',
             downloadUrl: pdfUrl,

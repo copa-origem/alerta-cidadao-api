@@ -1,26 +1,10 @@
 import { Module } from '@nestjs/common';
-import { ClientsModule, Transport } from "@nestjs/microservices";
 import { ProblemsService } from './problems.service';
 import { ProblemsController } from './problems.controller';
 import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [
-    NotificationsModule,
-    ClientsModule.register([
-      {
-        name: 'NOTIFICATIONS_SERVICE',
-        transport: Transport.RMQ,
-        options: {
-          urls: [process.env.RABBITMQ_URL || 'amqp://user:password@127.0.0.1:5672'],
-          queue: 'problems_queue',
-          queueOptions: {
-            durable: false,
-          },
-        },
-      },
-    ]),
-  ],
+  imports: [NotificationsModule],
   controllers: [ProblemsController],
   providers: [ProblemsService],
 })

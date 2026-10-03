@@ -20,7 +20,7 @@ export class VotesService {
     });
 
     if (existingVote) {
-      throw new ConflictException("You already voted in this problem.");
+      throw new ConflictException("You already voted on this problem.");
     }
 
     return await this.prisma.$transaction(async (tx) => {
@@ -48,12 +48,11 @@ export class VotesService {
             where: { id: problemId },
           });
 
-          return { message: "Problem deleted by excess of down votes"}
+          return { message: "Problem deleted due to too many downvotes"}
         }
       }
 
       return newVote;
     });
   }
-
 }

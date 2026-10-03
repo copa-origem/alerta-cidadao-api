@@ -1,29 +1,40 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { ReportFiltersDto } from './dto/export-problems.dto';
 const PDFDocument = require('pdfkit');
+
+export interface ReportJob {
+    jobId: string;
+    userId: string;
+    filters?: ReportFiltersDto;
+    createdAt: Date;
+}
 
 @Injectable()
 export class ReportsService {
+    private readonly logger = new Logger(ReportsService.name);
+
     constructor(
         @Inject('RABBITMQ_SERVICE') private readonly client: ClientProxy,
         private readonly prisma: PrismaService,
     ) {}
 
-    async requestReport(userId: string, filters: any) {
+    async requestReport(userId: string, filters?: ReportFiltersDto) {
         const jobId = crypto.randomUUID();
-        const payload = { jobId, userId, filters, createdAt: new Date() };
+        const payload: ReportJob = { jobId, userId, filters, createdAt: new Date() };
         this.client.emit('generate-report', payload);
         return { message: 'Processing...', jobId, status: 'pending' };
     }
 
-    async generatePdf(filters: any): Promise<string> {
-        console.log('Buscando dados no banco...');
+    async generatePdf(jobId: string, filters?: ReportFiltersDto): Promise<string> {
+        this.logger.log(`Job ${jobId}: fetching problems`);
 
-        const whereClause: any = {};
+        const whereClause: Prisma.ProblemWhereInput = {};
 
         if (filters?.status) {
-            whereClause.status = filters.status;
+            whereClause.status = filters.status as Prisma.ProblemWhereInput['status'];
         }
 
         if (filters?.categoryId) {
@@ -51,19 +62,19 @@ export class ReportsService {
             take: 100
         });
 
-        console.log(`Encontrados ${problems.length} registros. Gerando PDF...`);
+        this.logger.log(`Job ${jobId}: found ${problems.length} problems, generating PDF`);
 
         return new Promise((resolve, reject) => {
             const doc = new PDFDocument({ margin: 50 });
-            const chunks: any[] = [];
+            const chunks: Buffer[] = [];
 
-            doc.on('data', (chunk) => chunks.push(chunk));
+            doc.on('data', (chunk: Buffer) => chunks.push(chunk));
             doc.on('end', () => {
                 const result = Buffer.concat(chunks);
                 const base64Pdf = `data:application/pdf;base64,${result.toString('base64')}`;
                 resolve(base64Pdf);
             });
-            doc.on('error', (err) => reject(err));
+            doc.on('error', (err: Error) => reject(err));
 
             doc.fontSize(20).text('Relatório de Problemas Urbanos', { align: 'center' });
             doc.moveDown();
@@ -96,7 +107,7 @@ export class ReportsService {
 
                     doc.fillColor('black');
                     doc.moveDown();
-                    doc.moveTo(50, doc.y).lineTo(550, doc.y).strokeColor('#cccccc').stroke(); // Linha cinza separadora
+                    doc.moveTo(50, doc.y).lineTo(550, doc.y).strokeColor('#cccccc').stroke();
                     doc.moveDown();
                 });
             }
