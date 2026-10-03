@@ -5,15 +5,15 @@ import { ProblemsModule } from './problems/problems.module';
 import { VotesModule } from './votes/votes.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ReportsModule } from './reports/reports.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { CacheModule } from '@nestjs/cache-manager';
-import { redisStore } from 'cache-manager-redis-yet';
 import * as Joi from 'joi';
 import { HttpCacheInterceptor } from './common/http-cache.interceptor';
+import { cacheOptionsFactory } from './common/cache-options.factory';
 
 @Module({
   imports: [
@@ -30,19 +30,14 @@ import { HttpCacheInterceptor } from './common/http-cache.interceptor';
         CLOUDINARY_API_KEY: Joi.string().required(),
         CLOUDINARY_API_SECRET: Joi.string().required(),
         PORT: Joi.number().default(3000),
+        REDIS_HOST: Joi.string().default('localhost'),
+        REDIS_PORT: Joi.number().default(6379),
       }),
     }),
     CacheModule.registerAsync({
       isGlobal: true,
-      useFactory: async () => ({
-        store: await redisStore({
-          socket: {
-            host: process.env.REDIS_HOST || 'localhost',
-            port: 6379,
-          },
-          ttl: 60 * 1000,
-        }),
-      }),
+      inject: [ConfigService],
+      useFactory: cacheOptionsFactory,
     }),
     ScheduleModule.forRoot(),
     PrismaModule,
